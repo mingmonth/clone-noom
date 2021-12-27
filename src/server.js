@@ -25,12 +25,27 @@ const sockets = [];
 
 wss.on("connection", (socket) => {
   sockets.push(socket);
+  socket["nickname"] = "Anonymous";
   console.log("Connected to Browser");
   socket.on("close", () => console.log("Disconnected from the Browser!!"));
-  socket.on("message", (message) => {
-    // console.log(message.toString("utf8"));
-    // socket.send(message.toString("utf8"));
-    sockets.forEach((aSocket) => aSocket.send(message.toString("utf8")));
+  socket.on("message", (msg) => {
+    // console.log(msg.toString("utf8"));
+    // socket.send(msg.toString("utf8"));
+    const message = JSON.parse(msg.toString("utf8"));
+    console.log(message);
+    switch (message.type) {
+      case "new_message":
+        sockets.forEach((aSocket) =>
+          aSocket.send(`${socket.nickname}:${message.payload}`)
+        );
+        break;
+      case "nickname":
+        console.log(message.payload);
+        socket["nickname"] = message.payload;
+        break;
+      default:
+        console.log("default");
+    }
   });
   //   socket.send("welcome to chat!!");
 });
