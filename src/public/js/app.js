@@ -2,7 +2,8 @@ const socket = io();
 
 const welcome = document.getElementById("welcome");
 const room = document.getElementById("room");
-const form = welcome.querySelector("form");
+const nicknameForm = welcome.querySelector("#nickname");
+const roomnameForm = welcome.querySelector("#roomname");
 
 room.hidden = true;
 
@@ -17,11 +18,18 @@ function addMessage(message) {
 
 function handleMessageSubmit(event) {
   event.preventDefault();
-  const input = room.querySelector("input");
+  const input = room.querySelector("#msg input");
   const value = input.value;
   socket.emit("new_message", input.value, roomName, () => {
     addMessage(`You: ${value}`);
   });
+  input.value = "";
+}
+
+function handleNickNameSubmit(event) {
+  event.preventDefault();
+  const input = welcome.querySelector("#nickname input");
+  socket.emit("nickname", input.value);
   input.value = "";
 }
 
@@ -31,26 +39,29 @@ function showRoom() {
   room.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
-  const form = room.querySelector("form");
-  form.addEventListener("submit", handleMessageSubmit);
+  const msgForm = room.querySelector("#msg");
+  //   const nameForm = room.querySelector("#name");
+  msgForm.addEventListener("submit", handleMessageSubmit);
+  //   nameForm.addEventListener("submit", handleNickNameSubmit);
 }
 
 function handleRoomSubmit(event) {
   event.preventDefault();
-  const input = form.querySelector("input");
+  const input = welcome.querySelector("#roomname input");
   socket.emit("enter_room", { payload: input.value }, showRoom);
   roomName = input.value;
   input.value = "";
 }
 
-form.addEventListener("submit", handleRoomSubmit);
+roomnameForm.addEventListener("submit", handleRoomSubmit);
+nicknameForm.addEventListener("submit", handleNickNameSubmit);
 
-socket.on("welcome", () => {
-  addMessage("someone joind!");
+socket.on("welcome", (user) => {
+  addMessage(`${user} joind!`);
 });
 
-socket.on("bye", () => {
-  addMessage("someone left!");
+socket.on("bye", (user) => {
+  addMessage(`${user} left!`);
 });
 
 socket.on("new_message", addMessage);
