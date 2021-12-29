@@ -23,9 +23,11 @@ wsServer.on("connection", (socket) => {
   });
   socket.on("enter_room", (roomName, done) => {
     console.log(socket.rooms);
-    socket.join(roomName);
+    console.log(roomName);
+    socket.join(roomName.payload);
     console.log(socket.rooms);
     done();
+    socket.to(roomName.payload).emit("welcome");
     // setTimeout(() => {
     //   done();
     // }, 3000);
