@@ -20,7 +20,7 @@ const wsServer = SocketIO(httpServer);
 function publicRooms() {
   const {
     sockets: {
-      adapter: { sid, rooms },
+      adapter: { sids, rooms },
     },
   } = wsServer;
   const publicRooms = [];
@@ -39,12 +39,13 @@ wsServer.on("connection", (socket) => {
     console.log(`Socket Event:${event}`);
   });
   socket.on("enter_room", (roomName, done) => {
-    console.log(socket.rooms);
-    console.log(roomName);
+    // console.log(socket.rooms);
+    // console.log(roomName);
     socket.join(roomName.payload);
-    console.log(socket.rooms);
+    // console.log(socket.rooms);
     done();
     socket.to(roomName.payload).emit("welcome", socket.nickname);
+    wsServer.sockets.emit("room_change", publicRooms());
     // setTimeout(() => {
     //   done();
     // }, 3000);
@@ -54,6 +55,10 @@ wsServer.on("connection", (socket) => {
       (room) => socket.to(room).emit("bye", socket.nickname),
       socket.nickname
     );
+  });
+
+  socket.on("disconnect", () => {
+    wsServer.sockets.emit("room_change", publicRooms());
   });
   socket.on("new_message", (msg, room, done) => {
     socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
