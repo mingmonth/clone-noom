@@ -6,9 +6,11 @@ const socket = io();
 const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
+const sendBtn = document.getElementById("send");
 const cameraSelect = document.getElementById("cameras");
 
 const call = document.getElementById("call");
+const chatMessage = document.getElementById("chatMessage");
 
 call.hidden = true;
 
@@ -93,6 +95,23 @@ function handleCameraClick() {
   }
 }
 
+function addMessage(message) {
+    const ul = chatMessage.querySelector("ul");
+    const li = document.createElement("li");
+    li.innerText = message;
+    ul.appendChild(li);
+  }
+
+function handleSendClick() {
+  // const input = call.querySelector("input");
+  const input = chatMessage.querySelector("input");
+  const value = input.value;
+  addMessage(`You: ${value}`);
+  myDataChannel.send(value);
+  // myDataChannel.send(value);
+  input.value = "";
+}
+
 function handleMuteClick() {
   console.log(myStream.getAudioTracks());
   myStream
@@ -122,6 +141,7 @@ async function handleCameraChange() {
 
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
+sendBtn.addEventListener("click", handleSendClick);
 cameraSelect.addEventListener("input", handleCameraChange);
 
 // Welcome Form (join a room)
@@ -152,6 +172,7 @@ socket.on("welcome", async () => {
   myDataChannel = myPeerConnection.createDataChannel("chat");
   myDataChannel.addEventListener("message", (event) => {
     console.log(event.data);
+    addMessage(event.data);
   });
   console.log("made data channel");
   console.log("someone joined");
@@ -167,6 +188,7 @@ socket.on("offer", async (offer) => {
     myDataChannel = event.channel;
     myDataChannel.addEventListener("message", (event) => {
       console.log(event.data);
+      addMessage(event.data);
     });
   });
   console.log("received the offer");
